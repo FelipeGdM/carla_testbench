@@ -1,0 +1,28 @@
+# example.launch.yaml
+
+launch:
+  - arg:
+      name: "objects_definition_file"
+      default: "$(find-pkg-share carla_testbench)/config/objects.json"
+      description: "Description of objects to spawn"
+  - arg:
+      name: "spawn_point_ego_vehicle"
+      default: "spawn_ponint"
+      description: "Location to spawn ego_vehicle"
+  - arg:
+      name: "spawn_sensors_only"
+      default: "False"
+      description: "Only spawn described sensors"
+
+  - node:
+      pkg: "carla_spawn_objects"
+      exec: "carla_spawn_objects"
+      name: "vehicle_spawner"
+      param:
+        - name: "objects_definition_file"
+          value: "$(var objects_definition_file)"
+        - name: "spawn_point_ego_vehicle"
+          value: "$(var spawn_point_ego_vehicle)"
+        - name: "spawn_sensors_only"
+          value: "$(var spawn_sensors_only)"
+

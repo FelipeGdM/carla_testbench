@@ -1,0 +1,65 @@
+# example.launch.yaml
+
+launch:
+  # args that can be set from the command line or a default will be used
+  - arg:
+      name: "host"
+      default: "localhost"
+      description: "IP of the CARLA server"
+  - arg:
+      name: "port"
+      default: "2000"
+      description: "TCP port of the CARLA server"
+  - arg:
+      name: "timeout"
+      default: "2"
+      description: "Time to wait for a successful connection to the CARLA server"
+  - arg:
+      name: "passive"
+      default: "False"
+      description: "When enabled, the ROS bridge will take a backseat and another client must tick the world (only in synchronous mode)"
+  - arg:
+      name: "synchronous_mode"
+      default: "True"
+      description: "Enable/disable synchronous mode. If enabled, the ROS bridge waits until the expected data is received for all sensors"
+  - arg:
+      name: "synchronous_mode_wait_for_vehicle_control_command"
+      default: "False"
+      description: "When enabled, pauses the tick until a vehicle control is completed (only in synchronous mode)"
+  - arg:
+      name: "fixed_delta_seconds"
+      default: "0.05"
+      description: "Simulation time (delta seconds) between simulation steps"
+  - arg:
+      name: "town"
+      default: "Town02"
+      description: 'Either use an available CARLA town (eg. "Town01") or an OpenDRIVE file (ending in .xodr)'
+  - arg:
+      name: "register_all_sensors"
+      default: "True"
+      description: "Enable/disable the registration of all sensors. If disabled, only sensors spawned by the bridge are registered"
+
+  - node:
+      pkg: "carla_ros_bridge"
+      exec: "bridge"
+      name: "carla_ros_bridge"
+      param:
+        - name: "host"
+          value: "$(var host)"
+        - name: "port"
+          value: "$(var port)"
+        - name: "timeout"
+          value: "$(var timeout)"
+        - name: "passive"
+          value: "$(var passive)"
+        - name: "synchronous_mode"
+          value: "$(var synchronous_mode)"
+        - name: "synchronous_mode_wait_for_vehicle_control_command"
+          value: "$(var synchronous_mode_wait_for_vehicle_control_command)"
+        - name: "fixed_delta_seconds"
+          value: "$(var fixed_delta_seconds)"
+        - name: "town"
+          value: "$(var town)"
+        - name: "register_all_sensors"
+          value: "$(var register_all_sensors)"
+
