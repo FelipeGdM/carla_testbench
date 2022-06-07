@@ -43,6 +43,11 @@ launch:
       pkg: "carla_ros_bridge"
       exec: "bridge"
       name: "carla_ros_bridge"
+      remap:
+        - from: /carla/ego_vehicle/rgb_front_left/image
+          to: /carla/ego_vehicle/rgb_front_left/image_raw
+        - from: /carla/ego_vehicle/rgb_front_right/image
+          to: /carla/ego_vehicle/rgb_front_right/image_raw
       param:
         - name: "host"
           value: "$(var host)"
