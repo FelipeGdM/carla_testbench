@@ -44,10 +44,42 @@ launch:
       exec: "bridge"
       name: "carla_ros_bridge"
       remap:
+        - from: /carla/ego_vehicle/rgb_front_left/camera_info
+          to: /carla/ego_vehicle/rgb_front/left/camera_info
         - from: /carla/ego_vehicle/rgb_front_left/image
-          to: /carla/ego_vehicle/rgb_front_left/image_raw
+          to: /carla/ego_vehicle/rgb_front/left/image_raw
+        - from: /carla/ego_vehicle/rgb_front_right/camera_info
+          to: /carla/ego_vehicle/rgb_front/right/camera_info
         - from: /carla/ego_vehicle/rgb_front_right/image
-          to: /carla/ego_vehicle/rgb_front_right/image_raw
+          to: /carla/ego_vehicle/rgb_front/right/image_raw
+
+        - from: /carla/ego_vehicle/rgb_back_left/camera_info
+          to: /carla/ego_vehicle/rgb_back/left/camera_info
+        - from: /carla/ego_vehicle/rgb_back_left/image
+          to: /carla/ego_vehicle/rgb_back/left/image_raw
+        - from: /carla/ego_vehicle/rgb_back_right/camera_info
+          to: /carla/ego_vehicle/rgb_back/right/camera_info
+        - from: /carla/ego_vehicle/rgb_back_right/image
+          to: /carla/ego_vehicle/rgb_back/right/image_raw
+
+        - from: /carla/ego_vehicle/rgb_left_left/camera_info
+          to: /carla/ego_vehicle/rgb_left/left/camera_info
+        - from: /carla/ego_vehicle/rgb_left_left/image
+          to: /carla/ego_vehicle/rgb_left/left/image_raw
+        - from: /carla/ego_vehicle/rgb_left_right/camera_info
+          to: /carla/ego_vehicle/rgb_left/right/camera_info
+        - from: /carla/ego_vehicle/rgb_left_right/image
+          to: /carla/ego_vehicle/rgb_left/right/image_raw
+
+
+        - from: /carla/ego_vehicle/rgb_right_left/camera_info
+          to: /carla/ego_vehicle/rgb_right/left/camera_info
+        - from: /carla/ego_vehicle/rgb_right_left/image
+          to: /carla/ego_vehicle/rgb_right/left/image_raw
+        - from: /carla/ego_vehicle/rgb_right_right/camera_info
+          to: /carla/ego_vehicle/rgb_right/right/camera_info
+        - from: /carla/ego_vehicle/rgb_right_right/image
+          to: /carla/ego_vehicle/rgb_right/right/image_raw
       param:
         - name: "host"
           value: "$(var host)"
