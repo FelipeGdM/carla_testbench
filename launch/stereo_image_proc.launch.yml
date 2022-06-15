@@ -1,0 +1,47 @@
+# Wraper around stereo_image_proc.launch
+
+launch:
+
+  - group:
+    - push-ros-namespace:
+        namespace: "/carla/ego_vehicle/rgb_front"
+    - include:
+        file: "$(find-pkg-share stereo_image_proc)/launch/stereo_image_proc.launch.py"
+        arg:
+          - name: left_namespace
+            value: left 
+          - name: right_namespace
+            value: right
+
+  - group:
+    - push-ros-namespace:
+        namespace: "/carla/ego_vehicle/rgb_back"
+    - include:
+        file: "$(find-pkg-share stereo_image_proc)/launch/stereo_image_proc.launch.py"
+        arg:
+          - name: left_namespace
+            value: left 
+          - name: right_namespace
+            value: right
+
+  - group:
+    - push-ros-namespace:
+        namespace: "/carla/ego_vehicle/rgb_left"
+    - include:
+        file: "$(find-pkg-share stereo_image_proc)/launch/stereo_image_proc.launch.py"
+        arg:
+          - name: left_namespace
+            value: left 
+          - name: right_namespace
+            value: right
+
+  - group:
+    - push-ros-namespace:
+        namespace: "/carla/ego_vehicle/rgb_right"
+    - include:
+        file: "$(find-pkg-share stereo_image_proc)/launch/stereo_image_proc.launch.py"
+        arg:
+          - name: left_namespace
+            value: left 
+          - name: right_namespace
+            value: right
