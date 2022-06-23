@@ -71,7 +71,6 @@ launch:
         - from: /carla/ego_vehicle/rgb_left_right/image
           to: /carla/ego_vehicle/rgb_left/right/image_raw
 
-
         - from: /carla/ego_vehicle/rgb_right_left/camera_info
           to: /carla/ego_vehicle/rgb_right/left/camera_info
         - from: /carla/ego_vehicle/rgb_right_left/image
