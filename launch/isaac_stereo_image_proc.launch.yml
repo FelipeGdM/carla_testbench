@@ -4,7 +4,7 @@ launch:
 
   - group:
     - push-ros-namespace:
-        namespace: "/carla/ego_vehicle/rgb_front"
+        namespace: ""
     - node:
         pkg: "rclcpp_components"
         exec: "component_container"
@@ -13,7 +13,7 @@ launch:
         file: "$(find-pkg-share carla_testbench)/launch/isaac_stereo_image_proc.launch.py"
         arg:
           - name: left_namespace
-            value: left 
+            value: left
           - name: right_namespace
             value: right
           - name: use_color
@@ -23,65 +23,65 @@ launch:
           - name: container
             value: "/carla/ego_vehicle/rgb_front/front_container"
 
-  - group:
-    - push-ros-namespace:
-        namespace: "/carla/ego_vehicle/rgb_left"
-    - node:
-        pkg: "rclcpp_components"
-        exec: "component_container"
-        name: "left_container"
-    - include:
-        file: "$(find-pkg-share carla_testbench)/launch/isaac_stereo_image_proc.launch.py"
-        arg:
-          - name: left_namespace
-            value: left 
-          - name: right_namespace
-            value: right
-          - name: launch_image_proc
-            value: "True"
-          - name: use_color
-            value: "True"
-          - name: container
-            value: "/carla/ego_vehicle/rgb_left/left_container"
+  # - group:
+  #   - push-ros-namespace:
+  #       namespace: "/carla/ego_vehicle/rgb_left"
+  #   - node:
+  #       pkg: "rclcpp_components"
+  #       exec: "component_container"
+  #       name: "left_container"
+  #   - include:
+  #       file: "$(find-pkg-share carla_testbench)/launch/isaac_stereo_image_proc.launch.py"
+  #       arg:
+  #         - name: left_namespace
+  #           value: left
+  #         - name: right_namespace
+  #           value: right
+  #         - name: launch_image_proc
+  #           value: "True"
+  #         - name: use_color
+  #           value: "True"
+  #         - name: container
+  #           value: "/carla/ego_vehicle/rgb_left/left_container"
 
-  - group:
-    - push-ros-namespace:
-        namespace: "/carla/ego_vehicle/rgb_right"
-    - node:
-        pkg: "rclcpp_components"
-        exec: "component_container"
-        name: "right_container"
-    - include:
-        file: "$(find-pkg-share carla_testbench)/launch/isaac_stereo_image_proc.launch.py"
-        arg:
-          - name: left_namespace
-            value: left 
-          - name: right_namespace
-            value: right
-          - name: launch_image_proc
-            value: "True"
-          - name: use_color
-            value: "True"
-          - name: container
-            value: "/carla/ego_vehicle/rgb_right/right_container"
+  # - group:
+  #   - push-ros-namespace:
+  #       namespace: "/carla/ego_vehicle/rgb_right"
+  #   - node:
+  #       pkg: "rclcpp_components"
+  #       exec: "component_container"
+  #       name: "right_container"
+  #   - include:
+  #       file: "$(find-pkg-share carla_testbench)/launch/isaac_stereo_image_proc.launch.py"
+  #       arg:
+  #         - name: left_namespace
+  #           value: left
+  #         - name: right_namespace
+  #           value: right
+  #         - name: launch_image_proc
+  #           value: "True"
+  #         - name: use_color
+  #           value: "True"
+  #         - name: container
+  #           value: "/carla/ego_vehicle/rgb_right/right_container"
 
-  - group:
-    - push-ros-namespace:
-        namespace: "/carla/ego_vehicle/rgb_back"
-    - node:
-        pkg: "rclcpp_components"
-        exec: "component_container"
-        name: "back_camera"
-    - include:
-        file: "$(find-pkg-share carla_testbench)/launch/isaac_stereo_image_proc.launch.py"
-        arg:
-          - name: left_namespace
-            value: left 
-          - name: right_namespace
-            value: right
-          - name: launch_image_proc
-            value: "True"
-          - name: use_color
-            value: "True"
-          - name: container
-            value: "/carla/ego_vehicle/rgb_back/back_camera"
+  # - group:
+  #   - push-ros-namespace:
+  #       namespace: "/carla/ego_vehicle/rgb_back"
+  #   - node:
+  #       pkg: "rclcpp_components"
+  #       exec: "component_container"
+  #       name: "back_camera"
+  #   - include:
+  #       file: "$(find-pkg-share carla_testbench)/launch/isaac_stereo_image_proc.launch.py"
+  #       arg:
+  #         - name: left_namespace
+  #           value: left
+  #         - name: right_namespace
+  #           value: right
+  #         - name: launch_image_proc
+  #           value: "True"
+  #         - name: use_color
+  #           value: "True"
+  #         - name: container
+  #           value: "/carla/ego_vehicle/rgb_back/back_camera"
