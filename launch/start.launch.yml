@@ -10,7 +10,7 @@ launch:
       description: "TCP port of the CARLA server"
   - arg:
       name: "timeout"
-      default: "2"
+      default: "10"
       description: "Time to wait for a successful connection to the CARLA server"
   - arg:
       name: "passive"
@@ -22,7 +22,7 @@ launch:
       description: "Enable/disable synchronous mode. If enabled, the ROS bridge waits until the expected data is received for all sensors"
   - arg:
       name: "synchronous_mode_wait_for_vehicle_control_command"
-      default: "False"
+      default: "True"
       description: "When enabled, pauses the tick until a vehicle control is completed (only in synchronous mode)"
   - arg:
       name: "fixed_delta_seconds"

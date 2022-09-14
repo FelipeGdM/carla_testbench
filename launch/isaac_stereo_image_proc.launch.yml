@@ -21,8 +21,10 @@ launch:
           - name: launch_image_proc
             value: "True"
           - name: container
-            value: "/carla/ego_vehicle/rgb_front/front_container"
+            value: "front_container"
 
+
+# ros2 launch
   # - group:
   #   - push-ros-namespace:
   #       namespace: "/carla/ego_vehicle/rgb_left"
