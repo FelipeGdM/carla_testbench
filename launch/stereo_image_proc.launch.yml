@@ -20,7 +20,7 @@ launch:
         file: "$(find-pkg-share stereo_image_proc)/launch/stereo_image_proc.launch.py"
         arg:
           - name: left_namespace
-            value: left 
+            value: left
           - name: right_namespace
             value: right
 
