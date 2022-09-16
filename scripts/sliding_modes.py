@@ -1,3 +1,4 @@
+from distutils.cmd import Command
 import math
 from time import sleep
 from turtle import position
@@ -8,7 +9,7 @@ from geometry_msgs.msg import Twist, Pose, Point, Vector3
 from sensor_msgs.msg import Imu
 from visualization_msgs.msg import MarkerArray, Marker
 from std_msgs.msg import Header, ColorRGBA, Float32
-from carla_msgs.msg import CarlaEgoVehicleControl
+from carla_msgs.msg import CarlaEgoVehicleControl, CarlaControl
 from nav_msgs.msg import Odometry
 import matplotlib.pyplot as plt
 
@@ -19,22 +20,67 @@ from tf2_ros import TransformException
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
 
+from datetime import datetime
+
 LIST_PATH = '/home/gmsie/main_ws/src/carla_testbench/config/path.csv'
-LOOKAHEAD = 5.0
+LOOKAHEAD = 1.0
 USING_ODOMETRY_TOPIC = True
 
 GAMMA_0 = 1.0
-PHI = 0.2
+PHI = 1.0
 GAMMA_P = 1.0
 LAMBDA = 0.1
 KPV = 0.5
+KDV = 0.5
 # MAX_STEERING = 1.2217
 MAX_STEERING = 1.3
 V_TRESHOLD = 0.001
 
-A11 = 1.0
+A11 = 2.0
 A12 = 0.2
 A0 = 1.0
+
+EXECUTION_TIME = datetime.today().strftime('%Y-%m-%dT%H:%M:%S')
+FILENAME = f'L={LOOKAHEAD:.1f}_{A11=:.1f}_{A12=:.1f}_{A0=:.1f}_{PHI=:.2f}_{GAMMA_0=:.2f}_{EXECUTION_TIME}.csv'
+
+def convert_to_str(data):
+    return [str(datum) for datum in data]
+
+def log_output(*data):
+    with open(FILENAME, 'a') as output_file:
+        output_file.write(','.join(convert_to_str(data)))
+        output_file.write('\n')
+
+def triangle_height(A, B1, B2):
+    b = np.hypot(*(B2-B1))
+    l1 = np.hypot(*(A-B1))
+    l2 = np.hypot(*(A-B2))
+
+    cos_a = (l1**2 + b**2 - l2**2)/(2*l1*b)
+    sin_a = np.sqrt(1 - cos_a**2)
+
+    h = l1*sin_a
+
+    return h
+
+def get_curvature(A, B, C):
+    l = np.hypot(*(B-C))
+    h = triangle_height(A, B, C)
+
+    area = h*l/2
+
+    curvature = 4*area/(np.hypot(*(A-B))*np.hypot(*(A-B))*np.hypot(*(B-C)))
+
+    if np.isnan(curvature):
+        return 0.0
+
+    return curvature
+
+def path_min_distance(A, B1, B2, B3):
+    d1 = triangle_height(A, B1, B2)
+    d2 = triangle_height(A, B2, B3)
+
+    return np.min([d1, d2])
 
 def euler_from_quaternion(q):
         """
@@ -81,6 +127,7 @@ class FrameListener(Node):
         self.tf_listener = TransformListener(self.tf_buffer, self)
 
         self.cmd_pub = self.create_publisher(CarlaEgoVehicleControl, '/carla/ego_vehicle/vehicle_control_cmd', 1)
+        self.carla_control_pub = self.create_publisher(CarlaControl, '/carla/control', 3)
         self.markers_pub = self.create_publisher(MarkerArray, '/carla/debug_marker', 1)
 
         self.subscription_odometry = self.create_subscription(
@@ -90,18 +137,30 @@ class FrameListener(Node):
             1
         )
 
+        self.subscription_imu = self.create_subscription(
+            Imu,
+            '/carla/ego_vehicle/imu',
+            self._receive_imu,
+            1
+        )
+
         # Call on_timer function every second
         self.timer = self.create_timer(1.0, self._on_timer)
         self.timer_count = 0
 
         self.counter = 0
         self.imu_data = None
-        self.speedometer_data = None
+        self.odometry_data = None
 
         self.odometry_data = True
 
         self.received_imu = False
-        self.received_speedometer = False
+        self.received_odometry = False
+
+        self.last_v_error = 0
+
+        self.carla_control_pub.publish(CarlaControl(command=CarlaControl.PAUSE))
+        self.carla_control_pub.publish(CarlaControl(command=CarlaControl.STEP_ONCE))
 
     def _on_timer(self):
         header = Header(
@@ -128,16 +187,35 @@ class FrameListener(Node):
 
         self.markers_pub.publish(MarkerArray(markers=new_marker_list))
 
+    def _receive_imu(self, msg):
+        self.received_imu = True
+        self.imu_data = msg
+        self._control_action()
+
     def _receive_odometry(self, msg):
-        _, _, psi = euler_from_quaternion(msg.pose.pose.orientation)
-        pos_x = msg.pose.pose.position.x
-        pos_y = msg.pose.pose.position.y
+        self.received_odometry = True
+        self.odometry_data = msg
+        self._control_action()
 
-        psi_dot = msg.twist.twist.angular.z
-        v_x = msg.twist.twist.linear.x
-        v_y = msg.twist.twist.linear.y
+    def _control_action(self):
+        if (not self.received_imu) or (not self.received_odometry):
+            return
 
-        self.control_callback(psi, pos_x, pos_y, psi_dot, v_x, v_y)
+        _, _, psi = euler_from_quaternion(self.odometry_data.pose.pose.orientation)
+        pos_x = self.odometry_data.pose.pose.position.x
+        pos_y = self.odometry_data.pose.pose.position.y
+
+        psi_dot = self.odometry_data.twist.twist.angular.z
+        v_x = self.odometry_data.twist.twist.linear.x
+        v_y = self.odometry_data.twist.twist.linear.y
+
+        a_x = self.imu_data.linear_acceleration.x
+        a_y = self.imu_data.linear_acceleration.y
+
+        self.control_callback(psi, pos_x, pos_y, psi_dot, v_x, v_y, a_x, a_y)
+
+        self.received_imu = False
+        self.received_odometry = False
 
     def _gamma(self, beta, psi_dot, v_x, v_y, gamma_0):
         v = np.hypot(v_x, v_y)
@@ -218,7 +296,7 @@ class FrameListener(Node):
             self.cmd_pub.publish(CarlaEgoVehicleControl(throttle=0.0, steer=0.0, brake=1.0))
             sleep(0.1)
 
-    def control_callback(self, psi, pos_x, pos_y, psi_dot, v_x, v_y):
+    def control_callback(self, psi, pos_x, pos_y, psi_dot, v_x, v_y, a_x, a_y):
 
         # pos_x, pos_y, pos_z = self.get_position()
         v = np.hypot(v_x, v_y)
@@ -234,10 +312,14 @@ class FrameListener(Node):
         advance = np.argmax(forward_points_distances[start_point:] > LOOKAHEAD)
 
         closest = np.argmin(distances)
+
+        if closest == 559:
+            raise KeyboardInterrupt
+
         self.path_index += (advance + start_point)
 
         # self.get_logger().info(f'Advanced {advance} Start {start_point} Index {self.path_index} X: {pos_x:.3f} Y: {pos_y:.3f} v: {v:.3f}')
-        self.get_logger().info(f'Advanced {advance} Start {start_point} Index {self.path_index} Closest {closest}')
+        self.get_logger().info(f'Advanced {advance} Start {start_point} Index {self.path_index} Closest {closest} Total {len(distances)}')
 
         desired_x, desired_y = self.path[self.path_index + 1]
 
@@ -253,29 +335,41 @@ class FrameListener(Node):
         if np.abs(v) > 0.001:
             beta = np.arctan2(v_y, v_x)
 
-        rho = np.min([forward_points_distances[advance], LOOKAHEAD])
+        rho = np.min([np.hypot(delta_x, delta_y), LOOKAHEAD])
         desired_psi = np.arctan2(delta_y, delta_x)
 
-        previous_psi_vector = self.path[closest] - self.path[closest - 1]
-        previous_psi = np.arctan2(previous_psi_vector[1], previous_psi_vector[0])
+        # previous_psi_vector = self.path[closest] - self.path[closest - 1]
+        # previous_psi = np.arctan2(previous_psi_vector[1], previous_psi_vector[0])
 
-        next_psi_vector = self.path[closest + 1] - self.path[closest]
-        next_psi = np.arctan2(next_psi_vector[1], next_psi_vector[0])
+        # next_psi_vector = self.path[closest + 1] - self.path[closest]
+        # next_psi = np.arctan2(next_psi_vector[1], next_psi_vector[0])
 
-        delta_previous_next_vector = self.path[closest + 1] - self.path[closest - 1]
-        delta_previous_next = np.hypot(delta_previous_next_vector[1], delta_previous_next_vector[0])
+        # delta_previous_next_vector = self.path[closest + 1] - self.path[closest - 1]
+        # delta_previous_next = np.hypot(delta_previous_next_vector[1], delta_previous_next_vector[0])
 
-        delta_psi = next_psi - previous_psi
-        self.get_logger().info(f'Psi dot => {delta_psi=:.3f} {delta_previous_next=:.3f}')
+        # delta_psi = next_psi - previous_psi
+        # self.get_logger().info(f'Psi dot => {de`lta_psi=:.3f} {delta_previous_next=:.3f}')
 
-        if delta_psi > np.pi:
-            delta_psi -= 2*np.pi
-        if delta_psi < -np.pi:
-            delta_psi += 2*np.pi
+        # if delta_psi > np.pi:
+        #     delta_psi -= 2*np.pi
+        # if delta_psi < -np.pi:
+        #     delta_psi += 2*np.pi
 
-        desired_psi_dot = delta_psi*v/delta_previous_next
+        curvature = get_curvature(
+            self.path[closest - 3],
+            self.path[closest],
+            self.path[closest + 3]
+        )
 
-        gamma = self._gamma(beta, psi_dot, v_x, v_y, 1.0)
+        # curvature = get_curvature(
+        #     self.path[self.path_index - 3],
+        #     [pos_x, pos_y],
+        #     self.path[self.path_index + 3]
+        # )
+
+        desired_psi_dot = v*curvature
+
+        gamma = self._gamma(beta, psi_dot, v_x, v_y, GAMMA_0)
 
         # psi = self.normalize_angle(psi)
 
@@ -291,19 +385,58 @@ class FrameListener(Node):
         if delta_psi < -np.pi:
             delta_psi += 2*np.pi
 
-        # delta = -( -gamma*np.clip((delta_psi)/PHI, -1, 1) + v*desired_psi_dot)
+        # delta = -( -gamma*np.clip((delta_psi)/PHI, -1, 1) - v*desired_psi_dot)
         delta = -( -gamma*np.clip((delta_psi)/PHI, -1, 1) )
         delta = np.clip(delta, -MAX_STEERING, MAX_STEERING)
 
-        self.get_logger().info(f'Delta => {gamma=:.3f} {desired_psi=:.3f} {psi=:.3f} {beta=:.3f} {delta_psi=:.3f} {desired_psi_dot=:.3f} {v_x=:.3f} {v_y=:.3f}')
+        delta_beta = delta + beta
+        if delta_beta > np.pi:
+            delta_beta -= 2*np.pi
+        if delta_beta < -np.pi:
+            delta_beta += 2*np.pi
 
+        self.get_logger().info(f'Delta => {gamma=:.3f} {desired_psi=:.3f} {psi=:.3f} {beta=:.3f} {delta_psi=:.3f} {psi_dot=:.3f} {v_x=:.3f} {v_y=:.3f} {curvature=:.3f}')
+
+        # filtered_a_y = (a_y + self.last_m_ay + 5.324*self.last_f_ay)/7.314
+        # desired_v = np.max([5.5*rho/LOOKAHEAD - 5.0*np.abs(np.sin(beta)), 0])
         desired_v = 5.5*rho/LOOKAHEAD
-        fx = (desired_v - v)*KPV
+        # if curvature > 0.001 :
+            # desired_v = np.min([5.5*rho/LOOKAHEAD, 0.2/curvature])
+
+        v_error = desired_v - v
+        v_error_dot = v_error - self.last_v_error
+        fx = (v_error + v_error_dot*KDV)*KPV
         fx = np.clip(fx, -1, 1)
 
+        self.last_v_error = v_error
+
+        self.get_logger().info(f'{desired_v=:.3f}')
         self.get_logger().info(f'Control action: fx = {fx:.3f} delta = {delta:.3f}')
 
-        self.cmd_pub.publish(CarlaEgoVehicleControl(throttle=np.max([fx, 0]), brake=-np.max([-fx, 0]), steer=delta/MAX_STEERING))
+        self.cmd_pub.publish(CarlaEgoVehicleControl(throttle=np.max([fx, 0]), brake=-np.min([fx, 0]), steer=delta/MAX_STEERING))
+
+        self.carla_control_pub.publish(CarlaControl(command=CarlaControl.STEP_ONCE))
+
+        log_output(
+            pos_x,
+            pos_y,
+            psi,
+            v_x,
+            v_y,
+            psi_dot,
+            desired_x,
+            desired_y,
+            self.path_index,
+            closest,
+            path_min_distance([pos_x, pos_y], self.path[closest - 1], self.path[closest], self.path[closest + 1]),
+            delta,
+            fx,
+            gamma,
+            curvature,
+            desired_psi_dot,
+            a_x,
+            a_y
+        )
 
     def normalize_angle(self, ang):
         ang = ang % 2*np.pi
@@ -327,6 +460,7 @@ def main(args=None):
         minimal_publisher.stop_car()
         minimal_publisher.destroy_node()
         rclpy.shutdown()
+        print(FILENAME)
 
 
 if __name__ == '__main__':
