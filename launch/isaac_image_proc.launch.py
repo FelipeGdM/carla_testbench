@@ -22,7 +22,7 @@
 # LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
 # FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
 # COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING
 # BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 # LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
@@ -40,17 +40,21 @@ from launch_ros.actions import LoadComposableNodes
 from launch_ros.descriptions import ComposableNode
 
 
+NAMESPACE = '/stereo_camera/front/left'
+
 def generate_launch_description():
     composable_nodes = [
         ComposableNode(
             package='image_proc',
             plugin='image_proc::DebayerNode',
             name='debayer_node',
+            namespace=LaunchConfiguration('camera_ns'),
         ),
         ComposableNode(
             package='isaac_ros_image_proc',
-            plugin='isaac_ros::image_proc::RectifyNode',
+            plugin='nvidia::isaac_ros::image_proc::RectifyNode',
             name='rectify_mono_node',
+            namespace=LaunchConfiguration('camera_ns'),
             # Remap subscribers and publishers
             remappings=[
                 ('image', 'image_mono'),
@@ -60,8 +64,9 @@ def generate_launch_description():
         ),
         ComposableNode(
             package='isaac_ros_image_proc',
-            plugin='isaac_ros::image_proc::RectifyNode',
+            plugin='nvidia::isaac_ros::image_proc::RectifyNode',
             name='rectify_color_node',
+            namespace=LaunchConfiguration('camera_ns'),
             # Remap subscribers and publishers
             remappings=[
                 ('image', 'image_color'),
@@ -78,11 +83,19 @@ def generate_launch_description():
         )
     )
 
+    camera_ns_arg = DeclareLaunchArgument(
+        name='camera_ns', default_value='',
+        description=(
+            'Namespace to search from the camera topics'
+            'i.e. image_raw, camera_info'
+        )
+    )
+
     # If an existing container is not provided, start a container and load nodes into it
     image_processing_container = ComposableNodeContainer(
         condition=LaunchConfigurationEquals('container', ''),
         name='image_proc_container',
-        namespace='',
+        namespace=LaunchConfiguration('camera_ns'),
         package='rclcpp_components',
         executable='component_container',
         composable_node_descriptions=composable_nodes,
@@ -98,6 +111,7 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
+        camera_ns_arg,
         arg_container,
         image_processing_container,
         load_composable_nodes,

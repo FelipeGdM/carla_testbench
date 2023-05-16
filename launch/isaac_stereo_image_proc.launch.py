@@ -47,11 +47,11 @@ from launch_ros.descriptions import ComposableNode
 from launch_ros.substitutions import FindPackageShare
 
 
-def generate_launch_description():
+def generate_launch_description():  
     composable_nodes = [
         ComposableNode(
             package='isaac_ros_stereo_image_proc',
-            plugin='isaac_ros::stereo_image_proc::DisparityNode',
+            plugin='nvidia::isaac_ros::stereo_image_proc::DisparityNode',
             parameters=[{
                 'approximate_sync': LaunchConfiguration('approximate_sync'),
                 'use_system_default_qos': LaunchConfiguration('use_system_default_qos'),
@@ -69,6 +69,7 @@ def generate_launch_description():
                 'P1': LaunchConfiguration('P1'),
                 'P2': LaunchConfiguration('P2'),
                 'full_dp': LaunchConfiguration('full_dp'),
+                'backends': 'XAVIER' 
             }],
             remappings=[
                 ('left/image_rect', [LaunchConfiguration('left_namespace'), '/image_rect']),
@@ -77,24 +78,24 @@ def generate_launch_description():
                 ('right/camera_info', [LaunchConfiguration('right_namespace'), '/camera_info']),
             ]
         ),
-        ComposableNode(
-            package='isaac_ros_stereo_image_proc',
-            plugin='isaac_ros::stereo_image_proc::PointCloudNode',
-            parameters=[{
-                'approximate_sync': LaunchConfiguration('approximate_sync'),
-                'avoid_point_cloud_padding': LaunchConfiguration('avoid_point_cloud_padding'),
-                'use_color': LaunchConfiguration('use_color'),
-                'use_system_default_qos': LaunchConfiguration('use_system_default_qos'),
-            }],
-            remappings=[
-                ('left/camera_info', [LaunchConfiguration('left_namespace'), '/camera_info']),
-                ('right/camera_info', [LaunchConfiguration('right_namespace'), '/camera_info']),
-                (
-                    'left/image_rect_color',
-                    [LaunchConfiguration('left_namespace'), '/image_rect_color']
-                ),
-            ]
-        ),
+        # ComposableNode(
+        #     package='isaac_ros_stereo_image_proc',
+        #     plugin='nvidia::isaac_ros::stereo_image_proc::PointCloudNode',
+        #     parameters=[{
+        #         'approximate_sync': LaunchConfiguration('approximate_sync'),
+        #         'avoid_point_cloud_padding': LaunchConfiguration('avoid_point_cloud_padding'),
+        #         'use_color': LaunchConfiguration('use_color'),
+        #         'use_system_default_qos': LaunchConfiguration('use_system_default_qos'),
+        #     }],
+        #     remappings=[
+        #         ('left/camera_info', [LaunchConfiguration('left_namespace'), '/camera_info']),
+        #         ('right/camera_info', [LaunchConfiguration('right_namespace'), '/camera_info']),
+        #         (
+        #             'left/image_rect_color',
+        #             [LaunchConfiguration('left_namespace'), '/image_rect_color']
+        #         ),
+        #     ]
+        # ),
     ]
 
     return LaunchDescription([

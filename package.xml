@@ -14,6 +14,8 @@
 
   <exec_depend>ros2launch</exec_depend>
 
+  <exec_depend>isaac_ros_common</exec_depend>
+  <exec_depend>isaac_ros_stereo_image_proc</exec_depend>
   <export>
     <build_type>ament_cmake</build_type>
   </export>
