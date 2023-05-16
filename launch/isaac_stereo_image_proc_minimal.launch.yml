@@ -1,0 +1,22 @@
+launch:
+
+  - group:
+    - push-ros-namespace:
+        namespace: ""
+    - node:
+        pkg: "rclcpp_components"
+        exec: "component_container"
+        name: "front_container"
+    - include:
+        file: "$(find-pkg-share carla_testbench)/launch/isaac_stereo_image_proc.launch.py"
+        arg:
+          - name: left_namespace
+            value: left
+          - name: right_namespace
+            value: right
+          - name: use_color
+            value: "True"
+          - name: launch_image_proc
+            value: "True"
+          - name: container
+            value: "front_container"
