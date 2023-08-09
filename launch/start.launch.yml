@@ -108,7 +108,7 @@ launch:
       description: "Description of objects to spawn"
   - arg:
       name: "spawn_point_ego_vehicle"
-      default: "spawn_ponint"
+      default: "spawn_point"
       description: "Location to spawn ego_vehicle"
   - arg:
       name: "spawn_sensors_only"

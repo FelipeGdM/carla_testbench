@@ -23,11 +23,11 @@ from tf2_ros.transform_listener import TransformListener
 from datetime import datetime
 
 LIST_PATH = '/home/gmsie/main_ws/src/carla_testbench/config/path.csv'
-LOOKAHEAD = 1.0
+LOOKAHEAD = 2.0
 USING_ODOMETRY_TOPIC = True
 
 GAMMA_0 = 1.0
-PHI = 1.0
+PHI = 0.4
 GAMMA_P = 1.0
 LAMBDA = 0.1
 KPV = 0.5
@@ -37,7 +37,7 @@ MAX_STEERING = 1.3
 V_TRESHOLD = 0.001
 
 A11 = 2.0
-A12 = 0.2
+A12 = 0.5
 A0 = 1.0
 
 EXECUTION_TIME = datetime.today().strftime('%Y-%m-%dT%H:%M:%S')

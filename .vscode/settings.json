@@ -112,5 +112,6 @@
         "/opt/ros/foxy/lib/python3.8/site-packages",
         "/opt/carla-simulator/PythonAPI/carla/dist/carla-0.9.13-py3.7-linux-x86_64.egg",
         "/opt/carla-simulator/PythonAPI/carla"
-    ]
+    ],
+    "ros.distro": "foxy"
 }
