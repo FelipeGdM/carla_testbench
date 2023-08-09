@@ -3,9 +3,9 @@ import carla
 # center = {"x": -15.15, "y": -69.71}
 # center = {"x": 92.1, "y": -28.0}
 # center = {"x": 392.5, "y": -105.4}
-center = {"x": 189.5, "y": 273.0}
-width = 2.5
-length = 6
+center = {"x": 189.2, "y": 273.0}
+width = 2.3
+length = 5.8
 
 
 cone_locations = [
