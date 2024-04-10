@@ -34,7 +34,7 @@ if(BUILD_TESTING)
 endif()
 
 # Install launch files.
-install(DIRECTORY launch config
+install(DIRECTORY launch config params
   DESTINATION share/${PROJECT_NAME}/
 )
 
